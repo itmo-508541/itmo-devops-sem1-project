@@ -1,8 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"project_sem/internal/app"
+	"project_sem/internal/database"
 
 	_ "github.com/gorilla/mux"
 )
@@ -13,7 +14,6 @@ func main() {
 			log.Fatal(panicErr)
 		}
 	}()
-	if err := app.Init(); err != nil {
-		panic(err)
-	}
+
+	fmt.Println(database.Connection().Config().Database)
 }

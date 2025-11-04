@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"project_sem/internal/env"
+	"project_sem/internal/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -17,13 +17,10 @@ func main() {
 			log.Fatal(panicErr)
 		}
 	}()
-	if err := env.Init(); err != nil {
-		panic(err)
-	}
 
-	m, err := migrate.New("file://migrations", env.DataSourceName())
+	m, err := migrate.New("file://migrations", config.DataSourceName())
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	if err := m.Up(); err != nil {
 		fmt.Println(err)
