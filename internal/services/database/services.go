@@ -2,15 +2,12 @@ package database
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"project_sem/internal/config"
+	db "project_sem/internal/database"
+	"project_sem/internal/database/command/migrate"
 	"project_sem/internal/services/general"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/jackc/pgx/v5"
 	"github.com/sarulabs/di"
-	"github.com/spf13/cobra"
 )
 
 const (
@@ -28,8 +25,6 @@ const (
 	databaseEnv = "APP_DB_NAME"
 	userEnv     = "APP_DB_USER"
 	passwordEnv = "APP_DB_PASSWORD"
-
-	migrateUse = "migrate"
 )
 
 var Services = []di.Def{
@@ -57,38 +52,16 @@ var Services = []di.Def{
 			ctx := ctn.Get(general.ContextServiceName).(context.Context)
 			config := ctn.Get(ConfigServiceName).(*Config)
 
-			db, err := pgx.Connect(ctx, config.DataSourceName())
-			if err != nil {
-				return nil, fmt.Errorf("pgx.Connect: %w", err)
-			}
-
-			return &Connection{db}, nil
+			return db.New(ctx, config.DataSourceName())
 		},
 	},
 	{
 		Name:  MigrateCommandServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			dsn := ctn.Get(ConfigServiceName).(*Config).DataSourceName()
-			cmd := &cobra.Command{
-				Use:   migrateUse,
-				Short: "Migrate database schema",
-				RunE: func(cmd *cobra.Command, args []string) error {
-					m, err := migrate.New("file://migrations", dsn)
-					if err != nil {
-						return err
-					}
-					if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-						return err
-					}
-					version, _, _ := m.Version()
-					log.Println("Migrated to version:", version)
+			config := ctn.Get(ConfigServiceName).(*Config)
 
-					return nil
-				},
-			}
-
-			return cmd, nil
+			return migrate.New(config.DataSourceName()), nil
 		},
 	},
 }

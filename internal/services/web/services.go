@@ -1,30 +1,29 @@
 package web
 
 import (
-	"context"
-	"fmt"
-	"log"
 	"net/http"
-	"os"
-	"os/signal"
 	"project_sem/internal/config"
-	"syscall"
-	"time"
+	"project_sem/internal/handlers/load"
+	"project_sem/internal/handlers/save"
+	"project_sem/internal/server"
+	"project_sem/internal/server/command/start"
 
 	"github.com/sarulabs/di"
-	"github.com/spf13/cobra"
 )
 
 const (
 	ConfigServiceName             = "web:config"
+	LoadHandlerServiceName        = "web:handler.load"
+	SaveHandlerServiceName        = "web:handler.save"
+	ServeMuxServiceName           = "web:router"
 	ServerServiceName             = "web:server"
 	StartServerCommandServiceName = "web:start-server"
 
+	HostDefault = "0.0.0.0"
 	PortDefault = "8080"
 
+	hostEnv = "APP_HOST"
 	portEnv = "APP_PORT"
-
-	startServerUse = "start-server"
 )
 
 var Services = []di.Def{
@@ -33,6 +32,7 @@ var Services = []di.Def{
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
 			cfg := &Config{
+				Host: config.OptionalEnv(hostEnv, HostDefault),
 				Port: config.OptionalEnv(portEnv, PortDefault),
 			}
 
@@ -40,57 +40,54 @@ var Services = []di.Def{
 		},
 	},
 	{
+		Name:  LoadHandlerServiceName,
+		Scope: di.App,
+		Build: func(ctn di.Container) (interface{}, error) {
+			handler := load.New()
+
+			return handler, nil
+		},
+	},
+	{
+		Name:  SaveHandlerServiceName,
+		Scope: di.App,
+		Build: func(ctn di.Container) (interface{}, error) {
+			handler := save.New()
+
+			return handler, nil
+		},
+	},
+	{
+		Name:  ServeMuxServiceName,
+		Scope: di.App,
+		Build: func(ctn di.Container) (interface{}, error) {
+			loadHandler := ctn.Get(LoadHandlerServiceName).(*load.Handler)
+			saveHandler := ctn.Get(SaveHandlerServiceName).(*save.Handler)
+
+			mux := http.NewServeMux()
+			mux.Handle("GET /api/v0/prices", loadHandler.HandlerFunc())
+			mux.Handle("POST /api/v0/prices", saveHandler.HandlerFunc())
+
+			return mux, nil
+		},
+	},
+	{
 		Name:  ServerServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			mux := http.NewServeMux()
-			// @todo добавить новые handlers
+			mux := ctn.Get(ServeMuxServiceName).(*http.ServeMux)
+			config := ctn.Get(ConfigServiceName).(*Config)
 
-			port := ctn.Get(ConfigServiceName).(*Config).Port
-			// @todo тут куда-то нужно добавить контекст, наверное?? хз
-			srv := &http.Server{
-				Handler:      mux,
-				Addr:         fmt.Sprintf("0.0.0.0:%s", port),
-				WriteTimeout: 15 * time.Second,
-				ReadTimeout:  15 * time.Second,
-			}
-
-			return srv, nil
+			return server.New(mux, config.Addr()), nil
 		},
 	},
 	{
 		Name:  StartServerCommandServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			cmd := &cobra.Command{
-				Use:   startServerUse,
-				Short: "Start web-server",
-				// @todo наверное лучше это куда-то перенести =)
-				RunE: func(cmd *cobra.Command, args []string) error {
-					srv := ctn.Get(ServerServiceName).(*http.Server)
+			srv := ctn.Get(ServerServiceName).(*http.Server)
 
-					// @see https://github.com/sarulabs/di-example/blob/master/main.go
-					log.Printf("Listening on %s", srv.Addr)
-					go func() {
-						if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-							log.Println(err.Error())
-						}
-					}()
-
-					stop := make(chan os.Signal, 1)
-					signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-					<-stop
-
-					ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-					defer cancel()
-
-					log.Println("Stopping the http server")
-
-					return srv.Shutdown(ctx)
-				},
-			}
-
-			return cmd, nil
+			return start.New(srv), nil
 		},
 	},
 }
