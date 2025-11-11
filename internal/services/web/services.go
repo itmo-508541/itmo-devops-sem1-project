@@ -1,12 +1,16 @@
 package web
 
 import (
+	"context"
+	_ "embed"
 	"net/http"
+	"project_sem/internal/app/assets"
+	"project_sem/internal/app/handlers/load"
+	"project_sem/internal/app/handlers/save"
 	"project_sem/internal/config"
-	"project_sem/internal/handlers/load"
-	"project_sem/internal/handlers/save"
 	"project_sem/internal/server"
 	"project_sem/internal/server/command/start"
+	"project_sem/internal/services/general"
 
 	"github.com/sarulabs/di"
 )
@@ -65,8 +69,16 @@ var Services = []di.Def{
 			saveHandler := ctn.Get(SaveHandlerServiceName).(*save.Handler)
 
 			mux := http.NewServeMux()
-			mux.Handle("GET /api/v0/prices", loadHandler.HandlerFunc())
-			mux.Handle("POST /api/v0/prices", saveHandler.HandlerFunc())
+			mux.Handle("GET /api/v0/prices", loadHandler)
+			mux.Handle("POST /api/v0/prices", saveHandler)
+
+			mux.Handle("/panic", server.PanicRecoveryMiddleware(
+				func(http.ResponseWriter, *http.Request) {
+					panic("panic to recover")
+				},
+			))
+			mux.Handle("/favicon.ico", http.FileServer(http.FS(assets.FaviconFS)))
+			mux.Handle("/", http.FileServer(http.FS(assets.IndexFS)))
 
 			return mux, nil
 		},
@@ -86,8 +98,9 @@ var Services = []di.Def{
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
 			srv := ctn.Get(ServerServiceName).(*http.Server)
+			ctx := ctn.Get(general.ContextServiceName).(context.Context)
 
-			return start.New(srv), nil
+			return start.New(srv, ctx), nil
 		},
 	},
 }

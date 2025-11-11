@@ -23,19 +23,14 @@ func main() {
 	if err != nil {
 		log.Fatal(fmt.Errorf("di.NewBuilder: %w", err))
 	}
-	if err := builder.Add(general.Services...); err != nil {
-		log.Fatal(fmt.Errorf("builder.Add(general.Services): %w", err))
+	for _, services := range [][]di.Def{general.Services, application.Services, database.Services, web.Services} {
+		if err := builder.Add(services...); err != nil {
+			log.Fatal(fmt.Errorf("builder.Add: %w", err))
+		}
 	}
-	if err := builder.Add(application.Services...); err != nil {
-		log.Fatal(fmt.Errorf("builder.Add(application.Services): %w", err))
-	}
-	if err := builder.Add(database.Services...); err != nil {
-		log.Fatal(fmt.Errorf("builder.Add(database.Services): %w", err))
-	}
-	if err := builder.Add(web.Services...); err != nil {
-		log.Fatal(fmt.Errorf("builder.Add(web.Services): %w", err))
-	}
+
 	ctn := builder.Build()
+	defer ctn.DeleteWithSubContainers()
 
 	rootCmd := ctn.Get(application.CommandRootServiceName).(*cobra.Command)
 	if err := rootCmd.Execute(); err != nil {

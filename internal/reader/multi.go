@@ -7,6 +7,10 @@ type MultiArchive struct {
 	TarArchive
 }
 
+func NewMultiArchive() *MultiArchive {
+	return &MultiArchive{}
+}
+
 func (a *MultiArchive) Contents(b []byte) ([]byte, error) {
 	var err error
 	var zipContents, tarContents []byte

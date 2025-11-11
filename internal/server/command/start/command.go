@@ -2,40 +2,36 @@ package start
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/spf13/cobra"
 )
 
 const startServerUse = "start-server"
 
-func New(srv *http.Server) *cobra.Command {
+func New(srv *http.Server, rootCtx context.Context) *cobra.Command {
 	return &cobra.Command{
 		Use:   startServerUse,
 		Short: "Start web-server",
-		// @see https://github.com/sarulabs/di-example/blob/master/main.go
 		RunE: func(cmd *cobra.Command, args []string) error {
-			log.Printf("Listening on %s", srv.Addr)
-
+			log.Println("Starting web-server...")
 			go func() {
 				if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-					log.Println(err.Error())
+					log.Println(fmt.Errorf("srv.ListenAndServe: %w", err))
 				}
 			}()
-			stop := make(chan os.Signal, 1)
-			signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
-			<-stop
+			log.Printf("Listening on %s", srv.Addr)
+			<-rootCtx.Done()
 
-			log.Println("Stopping the http server")
-
-			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-			defer cancel()
-			return srv.Shutdown(ctx)
+			log.Println("Stopping Web-server...")
+			err := srv.Shutdown(context.Background())
+			if err != nil {
+				log.Println(fmt.Errorf("srv.Shutdown: %w", err))
+			}
+			log.Println("Web-server stopped")
+			return err
 		},
 	}
 }

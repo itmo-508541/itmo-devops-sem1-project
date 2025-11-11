@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<body>
+    Zip:
+    <form type="post" enctype="multipart/form-data" action="/api/v0/prices?type=zip" method="post">
+        <input type="file" name="file" />
+        <input type="submit" value="Save"/>
+    </form>
+    Tar:
+    <form type="post" enctype="multipart/form-data" action="/api/v0/prices?type=tar" method="post">
+        <input type="file" name="file" />
+        <input type="submit" value="Save"/>
+    </form>
+<!--
+    <p>
+        <a href="/api/v0/prices">Load</a>
+    </p>
+-->
+</body>
+</html>

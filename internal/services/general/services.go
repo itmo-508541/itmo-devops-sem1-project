@@ -2,7 +2,9 @@ package general
 
 import (
 	"context"
+	"os/signal"
 	"project_sem/internal/config"
+	"syscall"
 
 	"github.com/sarulabs/di"
 )
@@ -29,16 +31,16 @@ var Services = []di.Def{
 		},
 	},
 	func() di.Def {
-		context, cancel := context.WithCancel(context.Background())
+		rootCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
 		return di.Def{
 			Name:  ContextServiceName,
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
-				return context, nil
+				return rootCtx, nil
 			},
 			Close: func(obj interface{}) error {
-				cancel()
+				stop()
 				return nil
 			},
 		}
