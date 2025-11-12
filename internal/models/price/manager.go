@@ -18,8 +18,8 @@ func NewManager() *Manager {
 	return manager
 }
 
-func (m *Manager) AcceptCsv(r io.Reader) (Accepted, error) {
-	accepted := Accepted{}
+func (m *Manager) AcceptCsv(r io.Reader) (AcceptedDTO, error) {
+	accepted := AcceptedDTO{}
 
 	prices := []PriceDTO{}
 	gocsv.Unmarshal(r, &prices)

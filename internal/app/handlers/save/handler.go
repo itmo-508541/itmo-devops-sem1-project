@@ -40,7 +40,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var accepted price.Accepted
+	var accepted price.AcceptedDTO
 
 	manager := price.NewManager()
 	accepted, err = manager.AcceptCsv(bytes.NewReader(csv))

@@ -2,10 +2,11 @@ package migrate
 
 import (
 	"log"
+	"project_sem/internal/app/migrations"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +17,11 @@ func New(dsn string) *cobra.Command {
 		Use:   commandUse,
 		Short: "Migrate database schema",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			m, err := migrate.New("file://migrations", dsn)
+			schema, err := iofs.New(migrations.Schema, migrations.SchemaPath)
+			if err != nil {
+				return err
+			}
+			m, err := migrate.NewWithSourceInstance("iofs", schema, dsn)
 			if err != nil {
 				return err
 			}
