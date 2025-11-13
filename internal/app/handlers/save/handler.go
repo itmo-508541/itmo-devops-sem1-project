@@ -43,7 +43,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var accepted price.AcceptedDTO
 
-	accepted, err = h.manager.AcceptCsv(bytes.NewReader(csv))
+	accepted, err = h.manager.AcceptCsv(r.Context(), bytes.NewReader(csv))
 	if err != nil {
 		log.Println(fmt.Errorf("manager.AcceptReader: %w", err))
 		server.JSONInternalServerError(w)

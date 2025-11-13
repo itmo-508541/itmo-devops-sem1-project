@@ -6,17 +6,19 @@ import (
 	db "project_sem/internal/database"
 	"project_sem/internal/database/command/migrate"
 	"project_sem/internal/models/price"
+	"project_sem/internal/models/report"
 	"project_sem/internal/services/general"
 
 	"github.com/sarulabs/di"
 )
 
 const (
-	ConfigServiceName          = "database:config"
-	ConnectionServiceName      = "database:connection"
-	MigrateCommandServiceName  = "database:command.migrate"
-	PriceRepositoryServiceName = "database:repository.price"
-	PriceManagerServiceName    = "database:manager.price"
+	ConfigServiceName           = "database:config"
+	ConnectionServiceName       = "database:connection"
+	MigrateCommandServiceName   = "database:command.migrate"
+	PriceRepositoryServiceName  = "database:repository.price"
+	PriceManagerServiceName     = "database:manager.price"
+	ReportRepositoryServiceName = "database:repository.report"
 
 	HostDefault    = "localhost"
 	PortDefault    = "5432"
@@ -78,10 +80,26 @@ var Services = []di.Def{
 		},
 	},
 	{
+		Name:  ReportRepositoryServiceName,
+		Scope: di.App,
+		Build: func(ctn di.Container) (interface{}, error) {
+			conn := ctn.Get(ConnectionServiceName).(*db.Database)
+			repository := report.NewRepository(conn)
+
+			return repository, nil
+		},
+	},
+	{
 		Name:  PriceManagerServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			manager := price.NewManager()
+			ctx := ctn.Get(general.ContextServiceName).(context.Context)
+			repoPrice := ctn.Get(PriceRepositoryServiceName).(*price.Repository)
+			repoReport := ctn.Get(ReportRepositoryServiceName).(*report.Repository)
+
+			manager := price.NewManager(repoReport)
+			manager.AddProcessor(price.NewValidateProcessor())
+			manager.AddProcessor(price.NewPersistProcessor(ctx, repoPrice))
 
 			return manager, nil
 		},

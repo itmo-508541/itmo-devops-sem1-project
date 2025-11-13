@@ -17,7 +17,12 @@ func New(rootCtx context.Context, srv *http.Server, repo *price.Repository) *cob
 		Use:   startServerUse,
 		Short: "Start web-server",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			repo.DeleteAll(rootCtx)
+			var err error
+
+			err = repo.DeleteAll(rootCtx)
+			if err != nil {
+				return err
+			}
 
 			log.Println("Starting web-server...")
 			go func() {
@@ -29,7 +34,7 @@ func New(rootCtx context.Context, srv *http.Server, repo *price.Repository) *cob
 			<-rootCtx.Done()
 
 			log.Println("Stopping Web-server...")
-			err := srv.Shutdown(context.Background())
+			err = srv.Shutdown(context.Background())
 			if err != nil {
 				log.Println(fmt.Errorf("srv.Shutdown: %w", err))
 			}

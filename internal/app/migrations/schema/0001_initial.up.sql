@@ -1,18 +1,18 @@
 CREATE TABLE IF NOT EXISTS prices (
-    unique_key TEXT,
+    uuid TEXT PRIMARY KEY,
     id INTEGER,
     name TEXT,
     category TEXT,
     price DECIMAL(10, 2),
     create_date DATE,
-    CONSTRAINT unique_record PRIMARY KEY (unique_key, name, category, create_date)
+    group_uuid TEXT
 );
 
-CREATE TABLE IF NOT EXISTS report (
+CREATE TABLE IF NOT EXISTS reports (
+    uuid TEXT PRIMARY KEY,
     id INTEGER,
     name TEXT,
     category TEXT,
     price DECIMAL(10, 2),
-    create_date DATE,
-    CONSTRAINT report_record PRIMARY KEY (name, category, create_date)
+    create_date DATE
 );

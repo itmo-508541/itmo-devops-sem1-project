@@ -20,14 +20,25 @@ func (r *Repository) DeleteAll(parentCtx context.Context) error {
 	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
 
-	if err := r.db.WithTransaction(func(conn database.Connection) error {
-		if _, err := conn.Exec(ctx, "DELETE FROM prices"); err != nil {
-			return fmt.Errorf("conn.Exec: %w", err)
-		}
+	if _, err := r.db.Exec(ctx, "DELETE FROM prices"); err != nil {
+		return fmt.Errorf("conn.Exec: %w", err)
+	}
 
-		return nil
-	}); err != nil {
-		return fmt.Errorf("r.db.WithTransaction: %w", err)
+	return nil
+}
+
+func (r *Repository) Insert(parentCtx context.Context, price *PriceDTO) error {
+	if _, err := r.db.Exec(
+		parentCtx,
+		"INSERT INTO prices (group_uuid, uuid, id, name, category, price, create_date) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+		price.GroupUUID.String(),
+		price.UUID.String(),
+		price.Id, price.Name,
+		price.Category,
+		price.Price,
+		price.CreateDate,
+	); err != nil {
+		return fmt.Errorf("conn.Exec: %w", err)
 	}
 
 	return nil
