@@ -9,6 +9,7 @@ import (
 	"project_sem/internal/app/handlers"
 	"project_sem/internal/app/price"
 	"project_sem/internal/app/report"
+	"project_sem/internal/app/settings"
 	"project_sem/internal/config"
 	"project_sem/internal/server"
 	"project_sem/internal/services/database"
@@ -37,7 +38,7 @@ var Services = []di.Def{
 		Name:  ConfigServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			cfg := &Config{
+			cfg := &settings.WebSettings{
 				Host: config.OptionalEnv(hostEnv, HostDefault),
 				Port: config.OptionalEnv(portEnv, PortDefault),
 			}
@@ -89,7 +90,7 @@ var Services = []di.Def{
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
 			mux := ctn.Get(ServeMuxServiceName).(*http.ServeMux)
-			config := ctn.Get(ConfigServiceName).(*Config)
+			config := ctn.Get(ConfigServiceName).(*settings.WebSettings)
 
 			return server.New(mux, config.Addr()), nil
 		},

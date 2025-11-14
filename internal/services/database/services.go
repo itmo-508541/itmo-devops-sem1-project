@@ -5,6 +5,7 @@ import (
 	"project_sem/internal/app/command"
 	"project_sem/internal/app/price"
 	"project_sem/internal/app/report"
+	"project_sem/internal/app/settings"
 	"project_sem/internal/config"
 	db "project_sem/internal/database"
 	"project_sem/internal/services/general"
@@ -37,14 +38,14 @@ var Services = []di.Def{
 		Name:  ConfigServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			cnf := &Config{
+			cnf := &settings.DatabaseSettings{
 				Host:     config.OptionalEnv(hostEnv, HostDefault),
 				Port:     config.OptionalEnv(portEnv, PortDefault),
 				SslMode:  config.OptionalEnv(sslModeEnv, SslModeDefault),
 				Database: config.RequiredEnv(databaseEnv),
 				User:     config.RequiredEnv(userEnv),
 				Password: config.RequiredEnv(passwordEnv),
-				Timezone: ctn.Get(general.ConfigServiceName).(*general.Config).Timezone,
+				Timezone: ctn.Get(general.ConfigServiceName).(*settings.GeneralSettings).Timezone,
 			}
 
 			return cnf, nil
@@ -55,7 +56,7 @@ var Services = []di.Def{
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
 			ctx := ctn.Get(general.ContextServiceName).(context.Context)
-			config := ctn.Get(ConfigServiceName).(*Config)
+			config := ctn.Get(ConfigServiceName).(*settings.DatabaseSettings)
 
 			return db.New(ctx, config.DataSourceName())
 		},
@@ -64,7 +65,7 @@ var Services = []di.Def{
 		Name:  MigrateCommandServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			config := ctn.Get(ConfigServiceName).(*Config)
+			config := ctn.Get(ConfigServiceName).(*settings.DatabaseSettings)
 
 			return command.NewMigrate(config.DataSourceName()), nil
 		},

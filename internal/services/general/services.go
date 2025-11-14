@@ -3,6 +3,7 @@ package general
 import (
 	"context"
 	"os/signal"
+	"project_sem/internal/app/settings"
 	"project_sem/internal/config"
 	"syscall"
 
@@ -23,7 +24,7 @@ var Services = []di.Def{
 		Name:  ConfigServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			cfg := &Config{
+			cfg := &settings.GeneralSettings{
 				Timezone: config.OptionalEnv(timezoneEnv, TimezoneDefault),
 			}
 

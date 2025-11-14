@@ -1,12 +1,12 @@
-package web
+package settings
 
 import "fmt"
 
-type Config struct {
+type WebSettings struct {
 	Host string
 	Port string
 }
 
-func (c Config) Addr() string {
+func (c WebSettings) Addr() string {
 	return fmt.Sprintf("%s:%s", c.Host, c.Port)
 }

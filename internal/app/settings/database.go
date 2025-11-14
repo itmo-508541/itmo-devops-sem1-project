@@ -1,8 +1,8 @@
-package database
+package settings
 
 import "fmt"
 
-type Config struct {
+type DatabaseSettings struct {
 	Host     string
 	Port     string
 	SslMode  string
@@ -12,7 +12,7 @@ type Config struct {
 	Timezone string
 }
 
-func (c Config) DataSourceName() string {
+func (c DatabaseSettings) DataSourceName() string {
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s&TimeZone=%s",
 		c.User,
