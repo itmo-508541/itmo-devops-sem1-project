@@ -1,4 +1,4 @@
-package database
+package services
 
 import (
 	"context"
@@ -7,45 +7,44 @@ import (
 	"project_sem/internal/app/report"
 	"project_sem/internal/app/settings"
 	"project_sem/internal/config"
-	db "project_sem/internal/database"
-	"project_sem/internal/services/general"
+	"project_sem/internal/database"
 
 	"github.com/sarulabs/di"
 )
 
 const (
-	ConfigServiceName           = "database:config"
+	DatabaseSettingsServiceName = "database:settings"
 	ConnectionServiceName       = "database:connection"
 	MigrateCommandServiceName   = "database:command.migrate"
 	PriceRepositoryServiceName  = "database:repository.price"
 	PriceManagerServiceName     = "database:manager.price"
 	ReportRepositoryServiceName = "database:repository.report"
 
-	HostDefault    = "localhost"
-	PortDefault    = "5432"
-	SslModeDefault = "disable"
+	DatabaseHostDefault    = "localhost"
+	DatabasePortDefault    = "5432"
+	DatabaseSslModeDefault = "disable"
 
-	hostEnv     = "APP_DB_HOST"
-	portEnv     = "APP_DB_PORT"
-	sslModeEnv  = "APP_DB_SSL_MODE"
-	databaseEnv = "APP_DB_NAME"
-	userEnv     = "APP_DB_USER"
-	passwordEnv = "APP_DB_PASSWORD"
+	databaseHostEnv     = "APP_DB_HOST"
+	databasePortEnv     = "APP_DB_PORT"
+	databaseSslModeEnv  = "APP_DB_SSL_MODE"
+	databaseNameEnv     = "APP_DB_NAME"
+	databaseUserEnv     = "APP_DB_USER"
+	databasePasswordEnv = "APP_DB_PASSWORD"
 )
 
-var Services = []di.Def{
+var DatabaseServices = []di.Def{
 	{
-		Name:  ConfigServiceName,
+		Name:  DatabaseSettingsServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
 			cnf := &settings.DatabaseSettings{
-				Host:     config.OptionalEnv(hostEnv, HostDefault),
-				Port:     config.OptionalEnv(portEnv, PortDefault),
-				SslMode:  config.OptionalEnv(sslModeEnv, SslModeDefault),
-				Database: config.RequiredEnv(databaseEnv),
-				User:     config.RequiredEnv(userEnv),
-				Password: config.RequiredEnv(passwordEnv),
-				Timezone: ctn.Get(general.ConfigServiceName).(*settings.GeneralSettings).Timezone,
+				Host:     config.OptionalEnv(databaseHostEnv, DatabaseHostDefault),
+				Port:     config.OptionalEnv(databasePortEnv, DatabasePortDefault),
+				SslMode:  config.OptionalEnv(databaseSslModeEnv, DatabaseSslModeDefault),
+				Database: config.RequiredEnv(databaseNameEnv),
+				User:     config.RequiredEnv(databaseUserEnv),
+				Password: config.RequiredEnv(databasePasswordEnv),
+				Timezone: ctn.Get(GeneralSettingsServiceName).(*settings.GeneralSettings).Timezone,
 			}
 
 			return cnf, nil
@@ -55,17 +54,17 @@ var Services = []di.Def{
 		Name:  ConnectionServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			ctx := ctn.Get(general.ContextServiceName).(context.Context)
-			config := ctn.Get(ConfigServiceName).(*settings.DatabaseSettings)
+			ctx := ctn.Get(RootContextServiceName).(context.Context)
+			config := ctn.Get(DatabaseSettingsServiceName).(*settings.DatabaseSettings)
 
-			return db.New(ctx, config.DataSourceName())
+			return database.New(ctx, config.DataSourceName())
 		},
 	},
 	{
 		Name:  MigrateCommandServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			config := ctn.Get(ConfigServiceName).(*settings.DatabaseSettings)
+			config := ctn.Get(DatabaseSettingsServiceName).(*settings.DatabaseSettings)
 
 			return command.NewMigrate(config.DataSourceName()), nil
 		},
@@ -74,7 +73,7 @@ var Services = []di.Def{
 		Name:  PriceRepositoryServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			conn := ctn.Get(ConnectionServiceName).(*db.Database)
+			conn := ctn.Get(ConnectionServiceName).(*database.Database)
 			repository := price.NewRepository(conn)
 
 			return repository, nil
@@ -84,7 +83,7 @@ var Services = []di.Def{
 		Name:  ReportRepositoryServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			conn := ctn.Get(ConnectionServiceName).(*db.Database)
+			conn := ctn.Get(ConnectionServiceName).(*database.Database)
 			repository := report.NewRepository(conn)
 
 			return repository, nil

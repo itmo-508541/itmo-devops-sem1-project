@@ -1,4 +1,4 @@
-package web
+package services
 
 import (
 	"context"
@@ -12,35 +12,33 @@ import (
 	"project_sem/internal/app/settings"
 	"project_sem/internal/config"
 	"project_sem/internal/server"
-	"project_sem/internal/services/database"
-	"project_sem/internal/services/general"
 
 	"github.com/sarulabs/di"
 )
 
 const (
-	ConfigServiceName             = "web:config"
+	WebSettingsServiceName        = "web:settings"
 	LoadHandlerServiceName        = "web:handler.load"
 	SaveHandlerServiceName        = "web:handler.save"
 	ServeMuxServiceName           = "web:router"
 	ServerServiceName             = "web:server"
 	StartServerCommandServiceName = "web:start-server"
 
-	HostDefault = "0.0.0.0"
-	PortDefault = "8080"
+	WebHostDefault = "0.0.0.0"
+	WebPortDefault = "8080"
 
-	hostEnv = "APP_HOST"
-	portEnv = "APP_PORT"
+	webHostEnv = "APP_HOST"
+	webPortEnv = "APP_PORT"
 )
 
-var Services = []di.Def{
+var WebServices = []di.Def{
 	{
-		Name:  ConfigServiceName,
+		Name:  WebSettingsServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
 			cfg := &settings.WebSettings{
-				Host: config.OptionalEnv(hostEnv, HostDefault),
-				Port: config.OptionalEnv(portEnv, PortDefault),
+				Host: config.OptionalEnv(webHostEnv, WebHostDefault),
+				Port: config.OptionalEnv(webPortEnv, WebPortDefault),
 			}
 
 			return cfg, nil
@@ -50,7 +48,7 @@ var Services = []di.Def{
 		Name:  LoadHandlerServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			reportR := ctn.Get(database.ReportRepositoryServiceName).(*report.Repository)
+			reportR := ctn.Get(ReportRepositoryServiceName).(*report.Repository)
 			handler := handlers.NewLoadHandler(reportR)
 
 			return handler, nil
@@ -60,9 +58,9 @@ var Services = []di.Def{
 		Name:  SaveHandlerServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
-			manager := ctn.Get(database.PriceManagerServiceName).(*price.Manager)
-			priceR := ctn.Get(database.PriceRepositoryServiceName).(*price.Repository)
-			reportR := ctn.Get(database.ReportRepositoryServiceName).(*report.Repository)
+			manager := ctn.Get(PriceManagerServiceName).(*price.Manager)
+			priceR := ctn.Get(PriceRepositoryServiceName).(*price.Repository)
+			reportR := ctn.Get(ReportRepositoryServiceName).(*report.Repository)
 
 			handler := handlers.NewSaveHandler(manager, priceR, reportR)
 
@@ -90,7 +88,7 @@ var Services = []di.Def{
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
 			mux := ctn.Get(ServeMuxServiceName).(*http.ServeMux)
-			config := ctn.Get(ConfigServiceName).(*settings.WebSettings)
+			config := ctn.Get(WebSettingsServiceName).(*settings.WebSettings)
 
 			return server.New(mux, config.Addr()), nil
 		},
@@ -100,8 +98,8 @@ var Services = []di.Def{
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
 			srv := ctn.Get(ServerServiceName).(*http.Server)
-			ctx := ctn.Get(general.ContextServiceName).(context.Context)
-			repo := ctn.Get(database.PriceRepositoryServiceName).(*price.Repository)
+			ctx := ctn.Get(RootContextServiceName).(context.Context)
+			repo := ctn.Get(PriceRepositoryServiceName).(*price.Repository)
 
 			return command.NewStartServer(ctx, srv, repo), nil
 		},

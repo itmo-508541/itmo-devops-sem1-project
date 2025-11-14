@@ -3,10 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"project_sem/internal/services/commands"
-	"project_sem/internal/services/database"
-	"project_sem/internal/services/general"
-	"project_sem/internal/services/web"
+	"project_sem/internal/app/services"
 
 	"github.com/sarulabs/di"
 	"github.com/spf13/cobra"
@@ -23,7 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatal(fmt.Errorf("di.NewBuilder: %w", err))
 	}
-	for _, services := range [][]di.Def{general.Services, commands.Services, database.Services, web.Services} {
+	for _, services := range [][]di.Def{services.GeneralServices, services.CommandServices, services.DatabaseServices, services.WebServices} {
 		if err := builder.Add(services...); err != nil {
 			log.Fatal(fmt.Errorf("builder.Add: %w", err))
 		}
@@ -32,7 +29,7 @@ func main() {
 	ctn := builder.Build()
 	defer ctn.DeleteWithSubContainers()
 
-	rootCmd := ctn.Get(commands.CommandRootServiceName).(*cobra.Command)
+	rootCmd := ctn.Get(services.CommandRootServiceName).(*cobra.Command)
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(fmt.Errorf("rootCmd.Execute: %w", err))
 	}

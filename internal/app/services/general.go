@@ -1,4 +1,4 @@
-package general
+package services
 
 import (
 	"context"
@@ -11,17 +11,17 @@ import (
 )
 
 const (
-	ConfigServiceName  = "general:config"
-	ContextServiceName = "general:context"
+	GeneralSettingsServiceName = "general:settings"
+	RootContextServiceName     = "general:context"
 
 	TimezoneDefault = "Europe/Moscow"
 
 	timezoneEnv = "APP_TIMEZONE"
 )
 
-var Services = []di.Def{
+var GeneralServices = []di.Def{
 	{
-		Name:  ConfigServiceName,
+		Name:  GeneralSettingsServiceName,
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
 			cfg := &settings.GeneralSettings{
@@ -35,7 +35,7 @@ var Services = []di.Def{
 		rootCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
 		return di.Def{
-			Name:  ContextServiceName,
+			Name:  RootContextServiceName,
 			Scope: di.App,
 			Build: func(ctn di.Container) (interface{}, error) {
 				return rootCtx, nil
