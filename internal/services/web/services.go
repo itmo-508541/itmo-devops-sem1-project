@@ -5,12 +5,12 @@ import (
 	_ "embed"
 	"net/http"
 	"project_sem/internal/app/assets"
+	"project_sem/internal/app/command"
 	"project_sem/internal/app/handlers"
 	"project_sem/internal/config"
 	"project_sem/internal/models/price"
 	"project_sem/internal/models/report"
 	"project_sem/internal/server"
-	"project_sem/internal/server/command/start"
 	"project_sem/internal/services/database"
 	"project_sem/internal/services/general"
 
@@ -102,7 +102,7 @@ var Services = []di.Def{
 			ctx := ctn.Get(general.ContextServiceName).(context.Context)
 			repo := ctn.Get(database.PriceRepositoryServiceName).(*price.Repository)
 
-			return start.New(ctx, srv, repo), nil
+			return command.NewStartServer(ctx, srv, repo), nil
 		},
 	},
 }

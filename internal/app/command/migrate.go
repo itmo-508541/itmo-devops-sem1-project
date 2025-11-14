@@ -1,4 +1,4 @@
-package migrate
+package command
 
 import (
 	"log"
@@ -12,7 +12,7 @@ import (
 
 const commandUse = "migrate"
 
-func New(dsn string) *cobra.Command {
+func NewMigrate(dsn string) *cobra.Command {
 	return &cobra.Command{
 		Use:   commandUse,
 		Short: "Migrate database schema",

@@ -1,4 +1,4 @@
-package start
+package command
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 
 const startServerUse = "start-server"
 
-func New(rootCtx context.Context, srv *http.Server, repo *price.Repository) *cobra.Command {
+func NewStartServer(rootCtx context.Context, srv *http.Server, repo *price.Repository) *cobra.Command {
 	return &cobra.Command{
 		Use:   startServerUse,
 		Short: "Start web-server",

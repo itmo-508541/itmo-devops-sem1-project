@@ -2,9 +2,9 @@ package database
 
 import (
 	"context"
+	"project_sem/internal/app/command"
 	"project_sem/internal/config"
 	db "project_sem/internal/database"
-	"project_sem/internal/database/command/migrate"
 	"project_sem/internal/models/price"
 	"project_sem/internal/models/report"
 	"project_sem/internal/services/general"
@@ -66,7 +66,7 @@ var Services = []di.Def{
 		Build: func(ctn di.Container) (interface{}, error) {
 			config := ctn.Get(ConfigServiceName).(*Config)
 
-			return migrate.New(config.DataSourceName()), nil
+			return command.NewMigrate(config.DataSourceName()), nil
 		},
 	},
 	{
