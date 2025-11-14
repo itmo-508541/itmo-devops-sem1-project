@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"project_sem/internal/app/assets"
 	"project_sem/internal/app/command"
-	"project_sem/internal/app/handlers"
 	"project_sem/internal/app/price"
 	"project_sem/internal/app/report"
+	"project_sem/internal/app/server"
 	"project_sem/internal/app/settings"
 	"project_sem/internal/config"
-	"project_sem/internal/server"
 
 	"github.com/sarulabs/di"
 )
@@ -49,7 +48,7 @@ var WebServices = []di.Def{
 		Scope: di.App,
 		Build: func(ctn di.Container) (interface{}, error) {
 			reportR := ctn.Get(ReportRepositoryServiceName).(*report.Repository)
-			handler := handlers.NewLoadHandler(reportR)
+			handler := server.NewLoadHandler(reportR)
 
 			return handler, nil
 		},
@@ -62,7 +61,7 @@ var WebServices = []di.Def{
 			priceR := ctn.Get(PriceRepositoryServiceName).(*price.Repository)
 			reportR := ctn.Get(ReportRepositoryServiceName).(*report.Repository)
 
-			handler := handlers.NewSaveHandler(manager, priceR, reportR)
+			handler := server.NewSaveHandler(manager, priceR, reportR)
 
 			return handler, nil
 		},
@@ -90,7 +89,7 @@ var WebServices = []di.Def{
 			mux := ctn.Get(ServeMuxServiceName).(*http.ServeMux)
 			config := ctn.Get(WebSettingsServiceName).(*settings.WebSettings)
 
-			return server.New(mux, config.Addr()), nil
+			return server.NewWebServer(mux, config.Addr()), nil
 		},
 	},
 	{

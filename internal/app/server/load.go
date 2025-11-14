@@ -1,11 +1,10 @@
-package handlers
+package server
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 	"project_sem/internal/app/report"
-	"project_sem/internal/server"
 
 	"github.com/gocarina/gocsv"
 )
@@ -23,14 +22,14 @@ func NewLoadHandler(reportRepo *report.Repository) http.HandlerFunc {
 
 		if err != nil {
 			log.Println(fmt.Errorf("ServeHTTP: %w", err))
-			server.JSONInternalServerError(w)
+			JSONInternalServerError(w)
 			return
 		}
 
 		if fileType == "csv" {
-			server.TextResponse(w, csv, http.StatusOK)
+			TextResponse(w, csv, http.StatusOK)
 		} else {
-			server.ZipResponse(w, "prices.zip", csv, "data.csv", http.StatusOK)
+			ZipResponse(w, "prices.zip", csv, "data.csv", http.StatusOK)
 		}
 	}
 }

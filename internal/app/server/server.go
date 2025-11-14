@@ -5,9 +5,7 @@ import (
 	"time"
 )
 
-func New(mux *http.ServeMux, addr string) *http.Server {
-	// @todo тут куда-то нужно добавить контекст general:context, наверное?
-
+func NewWebServer(mux *http.ServeMux, addr string) *http.Server {
 	return &http.Server{
 		Handler:      mux,
 		Addr:         addr,

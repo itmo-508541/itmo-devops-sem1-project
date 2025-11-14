@@ -1,4 +1,4 @@
-package handlers
+package server
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"project_sem/internal/app/price"
 	"project_sem/internal/app/report"
 	"project_sem/internal/reader"
-	"project_sem/internal/server"
 )
 
 func NewSaveHandler(manager *price.Manager, priceRepo *price.Repository, reportRepo *report.Repository) http.HandlerFunc {
@@ -35,26 +34,26 @@ func NewSaveHandler(manager *price.Manager, priceRepo *price.Repository, reportR
 
 		if err != nil {
 			log.Println(fmt.Errorf("Save.ServeHTTP: %w", err))
-			server.JSONBadRequestError(w)
+			JSONBadRequestError(w)
 			return
 		}
 
 		accepted, err := manager.AcceptCsv(bytes.NewReader(csv))
 		if err != nil {
 			log.Println(fmt.Errorf("manager.AcceptCsv: %w", err))
-			server.JSONInternalServerError(w)
+			JSONInternalServerError(w)
 			return
 		}
 		err = priceRepo.InsertAll(r.Context(), &accepted.Output)
 		if err != nil {
 			log.Println(fmt.Errorf("priceRepo.InsertAll: %w", err))
-			server.JSONInternalServerError(w)
+			JSONInternalServerError(w)
 			return
 		}
 		result, err := reportRepo.Renew(r.Context(), accepted.UUID)
 		if err != nil {
 			log.Println(fmt.Errorf("reportRepo.Renew: %w", err))
-			server.JSONInternalServerError(w)
+			JSONInternalServerError(w)
 			return
 		}
 
@@ -63,6 +62,6 @@ func NewSaveHandler(manager *price.Manager, priceRepo *price.Repository, reportR
 		accepted.TotalCategories = result.TotalCategories
 		accepted.TotalPrice = result.TotalPrice
 
-		server.JSONResponse(w, *accepted, http.StatusOK)
+		JSONResponse(w, *accepted, http.StatusOK)
 	}
 }
