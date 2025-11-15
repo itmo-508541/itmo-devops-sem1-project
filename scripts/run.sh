@@ -1,2 +1,2 @@
 #!/bin/bash
-go run cmd/main.go start-server
+nohup ./bin/app start-server &

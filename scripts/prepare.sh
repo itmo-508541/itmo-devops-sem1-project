@@ -3,4 +3,7 @@ go mod tidy
 go mod download
 go mod verify
 
-go run cmd/main.go migrate
+mkdir --parent ./bin
+go build -o ./bin/app ./cmd/main.go
+
+./bin/app migrate
