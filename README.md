@@ -26,5 +26,4 @@ checkout, lint, юнит test, scripts/prepare.sh, scripts/run.sh, scripts/tests
 
 ## Todo
 
-1. golangci-lint run
-2. go build -tags dist -o ./build cmd/server/main.go
+1. docker compose build
