@@ -1,19 +1,9 @@
+include:
+  - docker-compose/postgres.yml
+
 services:
   server:
+    extends:
+      file: docker-compose/server.yml
+      service: server
     build: .
-    env_file: .env
-    environment:
-      - APP_DB_HOST=postgres
-    ports:
-      - "${APP_PORT}:8080"
-    depends_on:
-      - postgres
-
-  postgres:
-    image: postgres:15
-    ports:
-      - "${APP_DB_PORT}:5432"
-    environment:
-      - POSTGRES_USER=${APP_DB_USER}
-      - POSTGRES_PASSWORD=${APP_DB_PASSWORD}
-      - POSTGRES_DB=${APP_DB_NAME}

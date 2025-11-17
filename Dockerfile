@@ -3,10 +3,8 @@ WORKDIR /srv
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 COPY . ./
-RUN go build -tags dist -o ./bin/app ./cmd/main.go
+RUN go build -tags dist -o ./sem1app ./cmd/main.go
 
 FROM alpine:3.22 AS prod
-WORKDIR /srv
-COPY --from=builder /srv/bin/* ./
-
-CMD ["/srv/docker-entrypoint.sh"]
+COPY --from=builder /srv/sem1app /srv/docker-entrypoint.sh /usr/local/bin/
+CMD ["docker-entrypoint.sh"]

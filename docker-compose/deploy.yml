@@ -1,0 +1,9 @@
+include:
+  - postgres.yml
+
+services:
+  server:
+    extends:
+      file: server.yml
+      service: server
+    image: itmo508541/itmo-devops-sem1-project:latest
