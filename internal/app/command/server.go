@@ -36,7 +36,7 @@ func NewStartServer(
 			<-rootCtx.Done()
 
 			log.Println("Stopping Web-server...")
-			err = srv.Shutdown(context.Background())
+			err = srv.Shutdown(context.Background()) //nolint:contextcheck
 			if err != nil {
 				log.Println(fmt.Errorf("srv.Shutdown: %w", err))
 			}

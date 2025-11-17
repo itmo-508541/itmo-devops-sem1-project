@@ -26,4 +26,6 @@ checkout, lint, юнит test, scripts/prepare.sh, scripts/run.sh, scripts/tests
 
 ## Todo
 
-1. docker compose build
+1. добавить volume как в .github/workflows/go_check.yaml
+2. health check ! нужно проверять запущен ли postgres !
+3. заменить COPY на ADD в Dockerfile ? а все исходные файлы перенести в корень из /bin ?
