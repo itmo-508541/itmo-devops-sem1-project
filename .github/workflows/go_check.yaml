@@ -174,6 +174,8 @@ jobs:
         YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
         YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
         YC_SA_JSON_CREDENTIALS: ${{ secrets.YC_SA_JSON_CREDENTIALS }}
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        REPO: ${{ github.repository }}
       run: |
         echo $YC_SA_JSON_CREDENTIALS > instance.json
         yc config set service-account-key instance.json
@@ -213,13 +215,8 @@ jobs:
           docker compose pull ;
           docker compose up -d"
 
-    - name: Update repo description
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        REPO: ${{ github.repository }}
-      run: |
         curl -X PATCH \
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Accept: application/vnd.github.v3+json" \
-          -d '{"description":"Проекта 1 семестра Магистратуры DevOps в ИТМО httt://$SERVER_NAME:8080/"}' \
+          -d '{"homepage":"http://$SERVER_ADDRESS:8080/"}' \
           https://api.github.com/repos/$REPO
