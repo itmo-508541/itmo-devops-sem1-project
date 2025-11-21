@@ -177,6 +177,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         REPO: ${{ github.repository }}
       run: |
+        mkdir --parent ./build
+
         echo $YC_SA_JSON_CREDENTIALS > ./build/instance.json
         yc config set service-account-key ./build/instance.json
         yc config set cloud-id $YC_CLOUD_ID

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-mkdir --parent ./build
 yc compute instance create \
   --name itmo508541_vm \
   --description "sem1-project-vm" \
