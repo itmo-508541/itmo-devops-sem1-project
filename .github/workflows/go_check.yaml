@@ -187,11 +187,10 @@ jobs:
 
         ./scripts/vm-create.sh $JSON
         SERVER_ADDRESS=`cat $JSON | jq .network_interfaces[0].primary_v4_address.one_to_one_nat.address -r`
-        echo $SERVER_ADDRESS
         ./scripts/vm-deploy.sh $SERVER_ADDRESS
 
-        curl -X PATCH \
+        curl -s -X PATCH \
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Accept: application/vnd.github.v3+json" \
           -d '{"homepage":"http://'$SERVER_ADDRESS':8080/"}' \
-          https://api.github.com/repos/$REPO
+          https://api.github.com/repos/$REPO > /dev/null
