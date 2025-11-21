@@ -182,38 +182,10 @@ jobs:
         yc config set cloud-id $YC_CLOUD_ID
         yc config set folder-id $YC_FOLDER_ID
 
-        yc compute instance create \
-          --name itmo508541_vm \
-          --description "sem1-project-vm" \
-          --zone ru-central1-d \
-          --cores 2 \
-          --memory 2 \
-          --preemptible \
-          --create-boot-disk name=itmo508541-disk,type=network-ssd,size=10,image-folder-id=standard-images,image-family=ubuntu-2404-lts \
-          --network-interface subnet-name=itmo508541-subnet,nat-ip-version=ipv4 \
-          --metadata-from-file user-data=./scripts/user-data.yaml \
-          --format json  > instance.json || yc compute instance get --name itmo508541_vm --format=json > instance.json
+        ./scripts/vm-create.sh
 
-        SERVER_ADDRESS=`cat instance.json | jq .network_interfaces[0].primary_v4_address.one_to_one_nat.address -r`
-        while ! nc -z -v -w30 $SERVER_ADDRESS 22; do   
-          sleep 1
-        done
-
-        ssh runner@$SERVER_ADDRESS -o StrictHostKeyChecking=no "curl -fsSL https://get.docker.com -o get-docker.sh ;
-          sudo bash ./get-docker.sh ;
-          sudo chown runner:runner /srv ;
-          rm /srv/deploy.yml || true"
-
-        mkdir --parent ./build
-        docker compose -f docker-compose.deploy.yml config > ./build/deploy.yml
-        scp -P 22 -r ./build/deploy.yml runner@$SERVER_ADDRESS:/srv/deploy.yml
-
-        ssh runner@$SERVER_ADDRESS -o StrictHostKeyChecking=no "cd /srv ;
-          docker compose stop || true ;
-          rm docker-compose.yml || true ;
-          mv deploy.yml docker-compose.yml ;
-          docker compose pull ;
-          docker compose up -d"
+        SERVER_ADDRESS=`cat ./build/instance.json | jq .network_interfaces[0].primary_v4_address.one_to_one_nat.address -r`
+        ./scripts/vm-deploy.sh $SERVER_ADDRESS
 
         curl -X PATCH \
           -H "Authorization: token $GITHUB_TOKEN" \

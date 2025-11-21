@@ -1,0 +1,24 @@
+#cloud-config
+users:
+  - default
+  - name: runner
+    type: RANDOM
+    groups:
+      - sudo
+      - docker
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEAjA9jtsTu0wt3vdGE4PhSwIMCy4sWfe1tEIyM2meXuzmbuwynmvQqify2XHYW5UDo9vYmDtxs2x7iTgwbPoxpncxVLehjHh0icVBAgyZJnJw/sQZSI4HBdKFrHdp1xO65KPlw6kaWFGmHrMpulHThmpJbeNjnTG6gpxFtveMvwEw9Y/YHeT/TXvvWxmADsdfg9HRMGsYD+/dwmiA1XwT3/ClYJdIMuoGS55suJDx0SRJ/EfaZYkZ4svFJPygs7N1E8iNEN/1l260aFCJsBOsuyYSZxo2HZYwzwOgapzeHMX8kjtHIO9fpz0WXbvJ0zVxNpPGx1BHREz2rH0I266aLDw== andrey@mindubaev.ru
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMBVFYQ6lHlpOUBzw5Pp3FhZu8ay4HjWYt6OY3p+xWt3 covex@Dell-Covex
+
+ssh_pwauth: false
+disable_root: true
+
+packages:
+  - ufw
+runcmd:
+  - ufw allow from 0.0.0.0/0 to any port 22 proto tcp
+  - ufw allow from 0.0.0.0/0 to any port 8080 proto tcp
+  - ufw deny from 0.0.0.0/0
+  - ufw --force enable
