@@ -7,10 +7,14 @@ import (
 	"net/http"
 	"project_sem/internal/app/price"
 	"project_sem/internal/app/report"
+	"project_sem/internal/database"
 	"project_sem/internal/reader"
 )
 
-func NewSaveHandler(priceRepo *price.Repository, reportRepo *report.Repository) http.HandlerFunc {
+func NewSaveHandler(conn *database.Database) http.HandlerFunc {
+	priceRepo := price.NewRepository(conn)
+	reportRepo := report.NewRepository(conn)
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		var csv []byte

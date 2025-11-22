@@ -1,5 +1,7 @@
 package settings
 
-type GeneralSettings struct {
-	Timezone string
-}
+const (
+	TimezoneDefault = "Europe/Moscow"
+
+	timezoneEnv = "APP_TIMEZONE"
+)

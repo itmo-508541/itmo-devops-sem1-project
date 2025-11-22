@@ -4,20 +4,19 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"project_sem/internal/app/validate"
 	"project_sem/internal/database"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gocarina/gocsv"
 	"github.com/google/uuid"
 )
 
 type Repository struct {
-	db        *database.Database
-	validator *validator.Validate
+	db *database.Database
 }
 
-func NewRepository(db *database.Database, v *validator.Validate) *Repository {
-	repository := &Repository{db: db, validator: v}
+func NewRepository(db *database.Database) *Repository {
+	repository := &Repository{db: db}
 
 	return repository
 }
@@ -47,9 +46,15 @@ func (r *Repository) AcceptCsv(
 		return
 	}
 
+	v, err := validate.New()
+	if err != nil {
+		err = fmt.Errorf("validate.New: %w", err)
+
+		return
+	}
 	uid = uuid.New()
 	for _, price := range input {
-		err := r.validator.Struct(price)
+		err := v.Struct(price)
 		if err != nil {
 			continue
 		}

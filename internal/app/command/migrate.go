@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"project_sem/internal/app/migrations"
+	"project_sem/internal/app/settings"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -13,11 +14,13 @@ import (
 
 const commandUse = "migrate"
 
-func NewMigrate(dsn string) *cobra.Command {
+func NewMigrate() *cobra.Command {
 	return &cobra.Command{
 		Use:   commandUse,
 		Short: "Migrate database schema",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			dsn := settings.NewDatabaseSettings().DataSourceName()
+
 			schema, err := iofs.New(migrations.Schema, migrations.SchemaPath)
 			if err != nil {
 				return err

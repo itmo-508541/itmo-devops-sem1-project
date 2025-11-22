@@ -9,7 +9,6 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.4
 	github.com/joho/godotenv v1.5.1
-	github.com/sarulabs/di v2.0.0+incompatible
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.10.0

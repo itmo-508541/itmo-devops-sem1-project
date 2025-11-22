@@ -1,4 +1,4 @@
-package validators
+package validate
 
 import (
 	"reflect"
@@ -7,7 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func NotBlankValidator() validator.Func {
+func notBlankValidator() validator.Func {
 	// NotBlank is the validation function for validating if the current field
 	// has a value or length greater than zero, or is not a space only string.
 	return func(fl validator.FieldLevel) bool {

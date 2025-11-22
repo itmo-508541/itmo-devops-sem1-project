@@ -5,14 +5,17 @@ import (
 	"log"
 	"net/http"
 	"project_sem/internal/app/report"
+	"project_sem/internal/app/validate"
+	"project_sem/internal/database"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gocarina/gocsv"
 )
 
 // NewLoadHandler возвращает GET handler
 // http://localhost:8080/api/v0/prices?type=csv&start=2023-01-01&end=2025-10-01&min=10&max=20
-func NewLoadHandler(reportRepo *report.Repository, v *validator.Validate) http.HandlerFunc {
+func NewLoadHandler(conn *database.Database) http.HandlerFunc {
+	reportRepo := report.NewRepository(conn)
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		var csv string
 		var err error
@@ -24,9 +27,16 @@ func NewLoadHandler(reportRepo *report.Repository, v *validator.Validate) http.H
 
 			return
 		} else {
+			v, err := validate.New()
+			if err != nil {
+				log.Println(fmt.Errorf("validators.NewValidate: %w", err))
+				JSONInternalServerError(w)
+
+				return
+			}
 			err = v.Struct(filter)
 			if err != nil {
-				log.Println(err)
+				log.Println(fmt.Errorf("v.Struct: %w", err))
 				JSONBadRequestError(w)
 
 				return

@@ -5,25 +5,47 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"project_sem/internal/app/price"
+	"os/signal"
+	"project_sem/internal/app/assets"
+	"project_sem/internal/app/server"
+	"project_sem/internal/app/settings"
+	"project_sem/internal/database"
+	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 )
 
 const startServerUse = "start-server"
 
-func NewStartServer(
-	rootCtx context.Context,
-	srv *http.Server,
-	repo *price.Repository,
-) *cobra.Command {
+func NewStartServer() *cobra.Command {
 	return &cobra.Command{
 		Use:   startServerUse,
 		Short: "Start web-server",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := repo.DeleteAll(rootCtx)
+			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+			defer stop()
+
+			conn, err := database.New(ctx, settings.NewDatabaseSettings().DataSourceName())
 			if err != nil {
 				return err
+			}
+
+			loadHandler := server.NewLoadHandler(conn)
+			saveHandler := server.NewSaveHandler(conn)
+
+			mux := http.NewServeMux()
+			mux.Handle("GET /api/v0/prices", server.PanicRecoveryMiddleware(loadHandler))
+			mux.Handle("POST /api/v0/prices", server.PanicRecoveryMiddleware(saveHandler))
+			// @todo как-то сделать, чтобы было только для разработки
+			mux.Handle("/favicon.ico", http.FileServer(http.FS(assets.FaviconFS)))
+			mux.Handle("/", http.FileServer(http.FS(assets.IndexFS)))
+
+			srv := &http.Server{
+				Handler:      mux,
+				Addr:         settings.NewWebSettings().Addr(),
+				WriteTimeout: 15 * time.Second,
+				ReadTimeout:  15 * time.Second,
 			}
 
 			log.Println("Starting web-server...")
@@ -33,7 +55,7 @@ func NewStartServer(
 				}
 			}()
 			log.Printf("Listening on %s", srv.Addr)
-			<-rootCtx.Done()
+			<-ctx.Done()
 
 			log.Println("Stopping Web-server...")
 			err = srv.Shutdown(context.Background()) //nolint:contextcheck

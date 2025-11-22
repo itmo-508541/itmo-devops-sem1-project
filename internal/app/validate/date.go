@@ -1,4 +1,4 @@
-package validators
+package validate
 
 import (
 	"reflect"
@@ -7,7 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func DateValidator() validator.Func {
+func dateValidator() validator.Func {
 	re := regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 
 	return func(fl validator.FieldLevel) bool {
