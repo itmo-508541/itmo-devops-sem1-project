@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os/signal"
-	"project_sem/internal/app/assets"
 	"project_sem/internal/app/server"
 	"project_sem/internal/app/settings"
 	"project_sem/internal/database"
@@ -34,12 +33,9 @@ func NewStartServer() *cobra.Command {
 			loadHandler := server.NewLoadHandler(conn)
 			saveHandler := server.NewSaveHandler(conn)
 
-			mux := http.NewServeMux()
+			mux := server.NewServeMux()
 			mux.Handle("GET /api/v0/prices", server.PanicRecoveryMiddleware(loadHandler))
 			mux.Handle("POST /api/v0/prices", server.PanicRecoveryMiddleware(saveHandler))
-			mux.Handle("GET /favicon.ico", http.FileServer(http.FS(assets.FaviconFS)))
-			// мне нужна web-страница для ручного тестирования
-			mux.Handle("GET /", http.FileServer(http.FS(assets.IndexFS)))
 
 			srv := &http.Server{
 				Handler:      mux,

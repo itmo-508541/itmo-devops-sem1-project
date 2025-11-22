@@ -192,5 +192,5 @@ jobs:
         curl -s -X PATCH \
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Accept: application/vnd.github.v3+json" \
-          -d '{"homepage":"http://'$SERVER_ADDRESS':8080/"}' \
+          -d '{"homepage":"http://'$SERVER_ADDRESS':8080/api/v0/prices?type=csv"}' \
           https://api.github.com/repos/$REPO > /dev/null

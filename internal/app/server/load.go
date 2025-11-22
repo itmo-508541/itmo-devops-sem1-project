@@ -11,8 +11,6 @@ import (
 	"github.com/gocarina/gocsv"
 )
 
-// NewLoadHandler возвращает GET handler
-// http://localhost:8080/api/v0/prices?type=csv&start=2023-01-01&end=2025-10-01&min=10&max=20
 func NewLoadHandler(conn *database.Database) http.HandlerFunc {
 	reportRepo := report.NewRepository(conn)
 
