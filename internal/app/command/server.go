@@ -25,6 +25,7 @@ func NewStartServer() *cobra.Command {
 			ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 			defer stop()
 
+			log.Println("Connecting to database...")
 			conn, err := database.New(ctx, settings.DatabaseSourceName())
 			if err != nil {
 				return err
@@ -59,6 +60,13 @@ func NewStartServer() *cobra.Command {
 				log.Println(fmt.Errorf("srv.Shutdown: %w", err))
 			}
 			log.Println("Web-server stopped")
+
+			log.Println("Closing database connection...")
+			err = conn.Close(context.Background()) //nolint:contextcheck
+			if err != nil {
+				log.Println(fmt.Errorf("conn.Close: %w", err))
+			}
+			log.Println("Database connection closed")
 
 			return err
 		},

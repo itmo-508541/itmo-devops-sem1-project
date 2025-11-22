@@ -21,17 +21,6 @@ func NewRepository(db *database.Database) *Repository {
 	return repository
 }
 
-func (r *Repository) DeleteAll(parentCtx context.Context) error {
-	ctx, cancel := context.WithCancel(parentCtx)
-	defer cancel()
-
-	if _, err := r.db.Exec(ctx, "DELETE FROM prices"); err != nil {
-		return fmt.Errorf("conn.Exec: %w", err)
-	}
-
-	return nil
-}
-
 func (r *Repository) AcceptCsv(
 	parentCtx context.Context,
 	reader io.Reader,
