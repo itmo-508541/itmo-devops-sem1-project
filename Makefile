@@ -23,6 +23,10 @@ lint:
 test:
 	@go test ./internal/...
 
+.PHONY: start-psql
+start-psql:
+	@docker compose up -d postgres
+
 .PHONY: migrate
 migrate:
 	@go run ./cmd/main.go migrate
@@ -30,3 +34,6 @@ migrate:
 .PHONY: start-server
 start-server:
 	@go run ./cmd/main.go start-server
+
+.PHONY: run
+run: deps start-psql migrate start-server

@@ -93,27 +93,24 @@ func (r *Repository) AcceptCsv(
 			result.TotalItems++
 		}
 
+		// Ревью 1: далее в рамках этой же транзакции нужно сделать агрегирующий запрос чтобы посчитать статистику
+		row := r.db.QueryRow(
+			ctx,
+			"SELECT COALESCE(COUNT(DISTINCT category), 0) AS categories, COALESCE(SUM(price), 0) AS prices FROM prices",
+		)
+		// Задание: общее количество категорий
+		// 		Тут неоднозначное задание:
+		// 			не понятно какие категории считать: в загружаемом файте или в базе данных
+		// 		Я посчитал "итого по всем объектам в базе"
+		// Задание: суммарная стоимость всех объектов в базе данных
+		if err = row.Scan(&result.TotalCategories, &result.TotalPrice); err != nil {
+			return fmt.Errorf("row.Scan: %w", err)
+		}
+
 		return nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("r.db.WithTransaction: %w", err)
-	}
-
-	// Ревью 1: далее в рамках этой же транзакции нужно сделать агрегирующий запрос чтобы посчитать статистику
-	//
-	// Я вынес аггрегирующий запрос из транзакции, чтобы сократить время работы этой транзакции
-	row := r.db.QueryRow(
-		ctx,
-		"SELECT COALESCE(COUNT(DISTINCT category), 0) AS categories, COALESCE(SUM(price), 0) AS prices FROM prices",
-	)
-	// Задание: общее количество категорий
-	//   Тут неоднозначное задание: не понятно какие категории считать: в загружаемом файте или в базе данных
-	//   Я посчитал "итого по всем объектам в базе"
-	// Задание: суммарная стоимость всех объектов в базе данных
-	if err = row.Scan(&result.TotalCategories, &result.TotalPrice); err != nil {
-		err = fmt.Errorf("row.Scan: %w", err)
-
-		return
 	}
 
 	return result, nil
