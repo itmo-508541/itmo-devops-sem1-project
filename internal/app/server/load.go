@@ -4,21 +4,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"project_sem/internal/app/report"
+	"project_sem/internal/app/price"
 	"project_sem/internal/app/validate"
-	"project_sem/internal/database"
 
 	"github.com/gocarina/gocsv"
 )
 
-func NewLoadHandler(conn *database.Database) http.HandlerFunc {
-	reportRepo := report.NewRepository(conn)
-
+func NewLoadHandler(repository *price.Repository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var csv string
 		var err error
 
-		filter := report.NewRequestFilter(r)
+		filter := price.NewRequestFilter(r)
 		fileType := r.URL.Query().Get("type")
 		if fileType == "request" {
 			JSONResponse(w, filter, http.StatusOK)
@@ -41,7 +38,7 @@ func NewLoadHandler(conn *database.Database) http.HandlerFunc {
 			}
 		}
 
-		all, err := reportRepo.All(r.Context(), filter)
+		all, err := repository.FindByFilter(r.Context(), filter)
 		if err == nil {
 			csv, err = gocsv.MarshalString(all)
 		}

@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os/signal"
+	"project_sem/internal/app/assets"
+	"project_sem/internal/app/price"
 	"project_sem/internal/app/server"
 	"project_sem/internal/app/settings"
 	"project_sem/internal/database"
@@ -31,12 +33,17 @@ func NewStartServer() *cobra.Command {
 				return err
 			}
 
-			loadHandler := server.NewLoadHandler(conn)
-			saveHandler := server.NewSaveHandler(conn)
+			repository := price.NewRepository(conn)
+			loadHandler := server.NewLoadHandler(repository)
+			saveHandler := server.NewSaveHandler(repository)
 
-			mux := server.NewServeMux()
+			mux := http.NewServeMux()
 			mux.Handle("GET /api/v0/prices", server.PanicRecoveryMiddleware(loadHandler))
 			mux.Handle("POST /api/v0/prices", server.PanicRecoveryMiddleware(saveHandler))
+			// это для красоты =)
+			mux.Handle("GET /favicon.ico", http.FileServerFS(assets.FaviconFS))
+			// это инструмент для разработки
+			mux.Handle("GET /", http.FileServerFS(assets.IndexFS))
 
 			srv := &http.Server{
 				Handler:      mux,

@@ -1,5 +1,3 @@
-//go:build !dist
-
 package assets
 
 import "embed"

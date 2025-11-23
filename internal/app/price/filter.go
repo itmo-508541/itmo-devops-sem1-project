@@ -1,4 +1,4 @@
-package report
+package price
 
 import (
 	"net/http"

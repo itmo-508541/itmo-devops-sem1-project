@@ -21,8 +21,11 @@ func New(ctx context.Context, dsn string) (*Database, error) {
 	return &Database{db}, nil
 }
 
-func (d *Database) WithTransaction(do func(conn Connection) error) error {
-	ctx, cancel := context.WithCancel(context.Background())
+func (d *Database) WithTransaction(
+	parentCtx context.Context,
+	do func(conn Connection) error,
+) error {
+	ctx, cancel := context.WithCancel(parentCtx)
 	defer cancel()
 
 	rawTx, err := d.Begin(ctx)

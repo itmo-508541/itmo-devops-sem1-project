@@ -6,15 +6,10 @@ import (
 	"log"
 	"net/http"
 	"project_sem/internal/app/price"
-	"project_sem/internal/app/report"
-	"project_sem/internal/database"
 	"project_sem/internal/reader"
 )
 
-func NewSaveHandler(conn *database.Database) http.HandlerFunc {
-	priceRepo := price.NewRepository(conn)
-	reportRepo := report.NewRepository(conn)
-
+func NewSaveHandler(repository *price.Repository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		var csv []byte
@@ -42,27 +37,16 @@ func NewSaveHandler(conn *database.Database) http.HandlerFunc {
 			csv = append(csv, 10)
 		}
 
-		UUID, totalCount, err := priceRepo.AcceptCsv(r.Context(), bytes.NewReader(csv))
+		result, err := repository.AcceptCsv(r.Context(), bytes.NewReader(csv))
 		if err != nil {
 			err = fmt.Errorf("manager.AcceptCsv: %w", err)
-		}
-
-		sr := saveResultDTO{TotalCount: totalCount}
-		if err == nil {
-			sr.DuplicatesCount, sr.TotalItems, sr.TotalCategories, sr.TotalPrice, err = reportRepo.Renew(
-				r.Context(),
-				UUID,
-			)
-			if err != nil {
-				err = fmt.Errorf("reportRepo.Renew: %w", err)
-			}
 		}
 
 		if err != nil {
 			log.Println(err)
 			JSONInternalServerError(w)
 		} else {
-			JSONResponse(w, sr, http.StatusOK)
+			JSONResponse(w, result, http.StatusOK)
 		}
 	}
 }
